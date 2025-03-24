@@ -76,3 +76,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+.cl-avatarBox {
+  border-radius: 10px;
+  width: 38px;
+  height: 38px;
+}
