@@ -1,9 +1,10 @@
-import { getUsersYouMightLike } from "@/actions/user-action"
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
+import { getUsersYouMightLike } from "@/actions/user-action"
 import { FollowButton } from "./follow-button";
 import { UserSocials } from "./user-socials";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 
 export const YouMightLike = async () => {
@@ -14,7 +15,8 @@ export const YouMightLike = async () => {
   return (
     <Card className="w-[288px]">
       <CardHeader>
-        <CardTitle className="text-[16px] font-bold leading-[24px]">You Might Like</CardTitle>
+        <CardTitle className="text-[16px] font-bold leading-[24px] mb-[9px]">You Might Like</CardTitle>
+        <Separator/>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
