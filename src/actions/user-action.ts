@@ -62,3 +62,46 @@ export async function getDbUserId() {
 
   return user.id;
 }
+
+export async function getUsersYouMightLike() {
+  try {
+    const userId = await getDbUserId();
+
+    if (!userId) return [];
+
+    const usersYouMightLike = await prisma.user.findMany({
+      where: {
+        AND: [
+          { NOT: { id: userId } },
+          {
+            NOT: {
+              followers: {
+                some: {
+                  followerId: userId,
+                },
+              },
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        bio: true,
+        image: true,
+        _count: {
+          select: {
+            followers: true,
+          },
+        },
+      },
+      take: 3,
+    });
+
+    return usersYouMightLike;
+  } catch (error) {
+    console.log("Eror fetching users", error);
+    return [];
+  }
+}

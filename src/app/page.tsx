@@ -3,6 +3,7 @@ import { getDbUserId } from "@/actions/user-action";
 import { currentUser } from "@clerk/nextjs/server";
 import { CreatePost } from "@/components/create-post";
 import { PostsCard } from "@/components/posts-card";
+import { YouMightLike } from "@/components/you-might-like";
 
 export default async function Home() {
   const user = await currentUser();
@@ -18,6 +19,9 @@ export default async function Home() {
         <PostsCard key={post.id} post={post} dbuser={databaseUser}/>
        ))}
       </div>
+    </div>
+    <div className="hidden lg:flex flex-col gap-4 lg:col-span-4 top-20 ml-auto">
+      <YouMightLike/>
     </div>
  </div>
   );
