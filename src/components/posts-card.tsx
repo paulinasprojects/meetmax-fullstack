@@ -1,15 +1,16 @@
 "use client";
 
 import {formatDistanceToNow} from 'date-fns';
-import { getPosts } from "@/actions/post-action";
+import { getPosts, createComment, deleteComment } from "@/actions/post-action";
 import { Card, CardContent } from "./ui/card";
 import Link from "next/link";
 import Image from "next/image";
 import { SignInButton, useUser } from '@clerk/nextjs';
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Forward, HeartIcon, Loader2, LogIn, MessageCircle, SendHorizonal, SendIcon, Trash2 } from 'lucide-react';
-import { Textarea } from './ui/textarea';
+import { Forward, HeartIcon, Loader2, LogIn, MessageCircle, SendHorizonal, SendIcon, Trash, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { DeleteCommentAlertDialog } from './delete-comment-alert-dialog';
 
 type Posts = Awaited<ReturnType<typeof getPosts>>;
 type Post = Posts[number];
@@ -26,6 +27,38 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [isCommenting, setIsCommenting] = useState(false);
+  const [isDeletingComment, setIsDeletingComment] = useState(false);
+
+  const handleCommenting = async () => {
+    if (!newComment.trim() || isCommenting) return;
+    try {
+      setIsCommenting(true);
+      const result = await createComment(post.id, newComment);
+      if (result?.success) {
+        toast.success("Commented on post");
+        setNewComment("")
+      }
+    } catch (error) {
+      toast.error("Failed to add comment")
+    } finally {
+      setIsCommenting(false);
+    }
+  }
+
+  const handleDeleteComment = async (commentId: string) => {
+    try {
+      setIsDeletingComment(true);
+      const result = await deleteComment(commentId);
+
+      if (result?.success) {
+        toast.success("Comment deleted")
+      }
+    } catch (error) {
+      toast.error("Failed to delete comment")
+    } finally {
+      setIsDeletingComment(false)
+    }
+  }
 
   return (
     <Card className="ml-5 overflow-hidden ">
@@ -113,7 +146,7 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
             <div className='space-y-4  border-t pt-4'>
               <div className='space-y-4'>
                 {post.comments.map((comment) => (
-                  <div className="flex space-x-3" key={comment.id}>
+                  <div className="flex items-center space-x-3" key={comment.id}>
                     <Image
                       alt='author-image'
                       width={32}
@@ -134,6 +167,9 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
                       </div>
                       <p className='text-sm break-words'>{comment.content}</p>
                     </div>
+                    {dbuser === post.author.id && (
+                     <DeleteCommentAlertDialog isDeletingComment={isDeletingComment} onDelete={handleDeleteComment} commentId={comment.id}/>
+                    )}
                   </div>
                 ))}
               </div>
@@ -155,7 +191,9 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
                     />
                     <div className="ml-10">
                     <Button
-                    className='w-[38px] h-[38px] rounded-[5px] bg-[#212833]'
+                      className='w-[38px] h-[38px] rounded-[5px] bg-[#212833]'
+                      disabled={isCommenting}
+                      onClick={handleCommenting}
                     >
                       {isCommenting ? (
                         <Loader2 className='animate-spin dark:text-white'/>
