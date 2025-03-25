@@ -43,7 +43,7 @@ export default function RootLayout({
             <div className="min-h-screen">
               <Navbar/>
               <main className="py-8">
-                <div className="max-w-2xl  px-4">
+                <div className="max-w-7xl px-4">
                   <div className="flex gap-4">
                     <div className="hidden lg:block">
                       <Sidebar/>

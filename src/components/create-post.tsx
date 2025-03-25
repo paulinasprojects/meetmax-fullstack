@@ -40,7 +40,7 @@ export const CreatePost = () => {
   }
   
   return (
-    <Card className="mb-6 ml-5 w-[490px]">
+    <Card className="mb-6 ml-5">
       <CardContent className="pt-6">
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
