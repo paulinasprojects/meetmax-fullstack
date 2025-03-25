@@ -45,7 +45,7 @@ import { Button } from "./ui/button";
       <div className="flex flex-col gap-[10px] pl-5">
         {routes.map((route) => (
           <div className="" key={route.label}>
-            <div className={cn("flex items-center gap-5 w-[200px] h-[46px] ", pathname === route.href ? "bg-[#4e5d78] rounded-[10px] pl-2 w-[200px] h-[46px] font-bold" : "bg-transparent")}>
+            <div className={cn("flex items-center gap-5 w-[200px] h-[46px] ", pathname === route.href ? "bg-[#4e5d78] rounded-[10px] pl-4 text-white dark:text-white w-[200px] h-[46px] font-bold" : "bg-transparent")}>
             <route.icon className="size-5"/>
             <Link href={route.href}>
               {route.label}
