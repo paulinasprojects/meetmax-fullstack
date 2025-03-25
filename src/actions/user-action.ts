@@ -2,6 +2,7 @@
 
 import prisma from "@/lib/prisma";
 import { auth, currentUser } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 
 export async function syncUser() {
   try {
@@ -103,5 +104,61 @@ export async function getUsersYouMightLike() {
   } catch (error) {
     console.log("Eror fetching users", error);
     return [];
+  }
+}
+
+export async function followUser(followedUser: string) {
+  try {
+    const userId = await getDbUserId();
+
+    if (!userId) return;
+
+    if (userId === followedUser) {
+      throw new Error("You cannot follow yourself");
+    }
+
+    //Checking if we already follow the user and if do we unfollow them
+
+    const existingFollow = await prisma.follows.findUnique({
+      where: {
+        followerId_followingId: {
+          followerId: userId,
+          followingId: followedUser,
+        },
+      },
+    });
+
+    if (existingFollow) {
+      await prisma.follows.delete({
+        where: {
+          followerId_followingId: {
+            followerId: userId,
+            followingId: followedUser,
+          },
+        },
+      });
+    } else {
+      await prisma.$transaction([
+        prisma.follows.create({
+          data: {
+            followerId: userId,
+            followingId: followedUser,
+          },
+        }),
+
+        prisma.notification.create({
+          data: {
+            type: "FOLLOW",
+            userId: followedUser,
+            creatorId: userId,
+          },
+        }),
+      ]);
+    }
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.log(error);
+    return { success: false, error: "Failed to follow user" };
   }
 }

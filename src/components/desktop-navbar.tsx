@@ -20,7 +20,7 @@ export const DesktopNavbar= async () => {
         </div>
         </>
       ) : (
-        <SignInButton mode="modal">
+        <SignInButton mode="modal" forceRedirectUrl="/" signUpForceRedirectUrl="/">
           <Button variant="default">Sign In</Button>
         </SignInButton>
       )}

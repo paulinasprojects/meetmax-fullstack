@@ -17,7 +17,7 @@ export const YouMightLike = async () => {
         <CardTitle className="text-[16px] font-bold leading-[24px]">You Might Like</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-6">
           {users.map((user) => (
             <div key={user.id}>
             <div className="flex gap-2 items-center justify-between">

@@ -20,7 +20,7 @@ export default async function Home() {
        ))}
       </div>
     </div>
-    <div className="hidden lg:flex flex-col gap-4 lg:col-span-4 top-20 ml-auto">
+    <div className="hidden lg:flex flex-col gap-4 lg:col-span-4  ml-56">
       <YouMightLike/>
     </div>
  </div>
