@@ -1,7 +1,7 @@
 "use client";
 
 import {formatDistanceToNow} from 'date-fns';
-import { getPosts, createComment, deleteComment, deletePost } from "@/actions/post-action";
+import { getPosts, createComment, deleteComment, deletePost, likePost } from "@/actions/post-action";
 import { Card, CardContent } from "./ui/card";
 import Link from "next/link";
 import Image from "next/image";
@@ -24,12 +24,27 @@ interface PostsCardProps {
 export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
   const { user } = useUser();
   const [hasLiked, setHasLiked] = useState(post.likes.some((like) => like.userId === dbuser));
+  const [isLiking, setIsLiking] = useState(false);
   const [postLikes, setPostLikes] = useState(post._count.likes);
   const [isDeleting, setIsDeleting] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [isCommenting, setIsCommenting] = useState(false);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
+
+  const handleLike = async () => {
+    if (isLiking) return;
+    try {
+      setIsLiking(true);
+      setHasLiked(!hasLiked)
+      setPostLikes((prev) => prev + (hasLiked ? -1 : 1));
+      await likePost(post.id)
+    } catch (error) {
+      setHasLiked(post.likes.some((like) => like.userId === dbuser))
+    } finally {
+      setIsLiking(false)
+    }
+  }
 
   const handleCommenting = async () => {
     if (!newComment.trim() || isCommenting) return;
@@ -107,7 +122,7 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
                   <DeletePostAlerDialog isDeleting={isDeleting} onDelete={handleDeletePost}/>
                 )}
               </div>
-              <p className='mt-2 text-sm text-foreground break-words'>{post.content}</p>
+              <p className='mt-2 mb-4 text-sm text-foreground break-words'>{post.content}</p>
             </div>
           </div>
           {post.image && (
@@ -123,7 +138,7 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
                 className={`text-muted-foreground gap-2 ${
                   hasLiked ? "text-red-500 hover:text-red-600" : "hover:text-red-500"
                 }`}
-                onClick={() => {}}
+                onClick={handleLike}
               >
                 {hasLiked ? (
                   <HeartIcon className='size-5 fill-current'/>

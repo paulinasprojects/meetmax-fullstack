@@ -188,3 +188,71 @@ export async function deletePost(postId: string) {
     return { success: false, error: "Failed to delete post" };
   }
 }
+
+export async function likePost(postId: string) {
+  try {
+    const userId = await getDbUserId();
+    if (!userId) return;
+
+    //Check if the like exist
+    const existingLike = await prisma.like.findUnique({
+      where: {
+        userId_postId: {
+          userId,
+          postId,
+        },
+      },
+    });
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+      select: {
+        authorId: true,
+      },
+    });
+
+    if (!post) throw new Error("Post not found");
+
+    //Checking if there is existing like and if there is we unlike it
+    // if we didn't like it in the past we like and create a notification
+
+    if (existingLike) {
+      await prisma.like.delete({
+        where: {
+          userId_postId: {
+            userId,
+            postId,
+          },
+        },
+      });
+    } else {
+      await prisma.$transaction([
+        prisma.like.create({
+          data: {
+            userId,
+            postId,
+          },
+        }),
+        ...(post.authorId !== userId
+          ? [
+              prisma.notification.create({
+                data: {
+                  type: "LIKE",
+                  userId: post.authorId,
+                  creatorId: userId,
+                  postId,
+                },
+              }),
+            ]
+          : []),
+      ]);
+    }
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to like a post" };
+  }
+}
