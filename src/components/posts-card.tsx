@@ -1,16 +1,17 @@
 "use client";
 
 import {formatDistanceToNow} from 'date-fns';
-import { getPosts, createComment, deleteComment } from "@/actions/post-action";
+import { getPosts, createComment, deleteComment, deletePost } from "@/actions/post-action";
 import { Card, CardContent } from "./ui/card";
 import Link from "next/link";
 import Image from "next/image";
 import { SignInButton, useUser } from '@clerk/nextjs';
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Forward, HeartIcon, Loader2, LogIn, MessageCircle, SendHorizonal, SendIcon, Trash, Trash2 } from 'lucide-react';
+import { Forward, HeartIcon, Loader2, LogIn, MessageCircle, SendHorizonal, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DeleteCommentAlertDialog } from './delete-comment-alert-dialog';
+import { DeletePostAlerDialog } from './delete-post-alert-dialog';
 
 type Posts = Awaited<ReturnType<typeof getPosts>>;
 type Post = Posts[number];
@@ -24,6 +25,7 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
   const { user } = useUser();
   const [hasLiked, setHasLiked] = useState(post.likes.some((like) => like.userId === dbuser));
   const [postLikes, setPostLikes] = useState(post._count.likes);
+  const [isDeleting, setIsDeleting] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [isCommenting, setIsCommenting] = useState(false);
@@ -60,6 +62,21 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
     }
   }
 
+  const handleDeletePost = async () => {
+    if (isDeleting) return;
+    try {
+      setIsDeleting(true);
+      const result = await deletePost(post.id);
+      if (result.success) {
+        toast.success("Post deleted successfully")
+      } else throw new Error(result.error)
+    } catch (error) {
+      toast.error('Failed to delete post')
+    } finally {
+      setIsDeleting(false)
+    }
+  };
+
   return (
     <Card className="ml-5 overflow-hidden ">
       <CardContent className="p-4 sm:p-6">
@@ -87,7 +104,7 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
                   </div>
                 </div>
                 {dbuser === post.author.id && (
-                  <Trash2 className='text-red-500 size-4'/>
+                  <DeletePostAlerDialog isDeleting={isDeleting} onDelete={handleDeletePost}/>
                 )}
               </div>
               <p className='mt-2 text-sm text-foreground break-words'>{post.content}</p>

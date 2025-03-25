@@ -160,3 +160,31 @@ export async function deleteComment(commentId: string) {
     return { success: false, error: "Failed to delete comment" };
   }
 }
+
+export async function deletePost(postId: string) {
+  try {
+    const userId = await getDbUserId();
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+      select: {
+        authorId: true,
+      },
+    });
+
+    if (!post) throw new Error("Post not found");
+    if (post.authorId !== userId) throw new Error("Unauthorized");
+    await prisma.post.delete({
+      where: {
+        id: postId,
+      },
+    });
+
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    return { success: false, error: "Failed to delete post" };
+  }
+}
