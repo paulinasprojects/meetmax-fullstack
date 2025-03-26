@@ -61,10 +61,16 @@ export async function getPosts() {
             userId: true,
           },
         },
+        savedBy: {
+          select: {
+            userId: true,
+          },
+        },
         _count: {
           select: {
             likes: true,
             comments: true,
+            savedBy: true,
           },
         },
       },
@@ -120,6 +126,7 @@ export async function createComment(postId: string, content: string) {
     revalidatePath("/");
     return { success: true, comment };
   } catch (error) {
+    console.log("Error creatingComment", error);
     return { success: false, error: "Failed to create comment" };
   }
 }
@@ -157,6 +164,7 @@ export async function deleteComment(commentId: string) {
     revalidatePath("/");
     return { success: true };
   } catch (error) {
+    console.log("Error deleting this comment", error);
     return { success: false, error: "Failed to delete comment" };
   }
 }
@@ -185,6 +193,7 @@ export async function deletePost(postId: string) {
     revalidatePath("/");
     return { success: true };
   } catch (error) {
+    console.log("Error deleting this post", error);
     return { success: false, error: "Failed to delete post" };
   }
 }
@@ -253,6 +262,59 @@ export async function likePost(postId: string) {
     revalidatePath("/");
     return { success: true };
   } catch (error) {
+    console.log("Error liking post", error);
     return { success: false, error: "Failed to like a post" };
+  }
+}
+
+export async function SavePost(postId: string) {
+  try {
+    const userId = await getDbUserId();
+    if (!userId) return;
+
+    const post = await prisma.post.findUnique({
+      where: {
+        id: postId,
+      },
+    });
+
+    if (!post) {
+      throw new Error("Post not found");
+    }
+
+    //finding the bookmarked post that is bookmarked by the user
+    const bookmark = await prisma.savedPost.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
+
+    //delete the bookmark if the psot is already bookmarked
+
+    if (bookmark) {
+      await prisma.savedPost.delete({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
+    } else {
+      await prisma.savedPost.create({
+        data: {
+          postId,
+          userId,
+        },
+      });
+    }
+    revalidatePath("/");
+    return { success: true };
+  } catch (error) {
+    console.log("Error bookmarking this post", error);
+    return { success: false, error: "Failed to bookmark this post" };
   }
 }

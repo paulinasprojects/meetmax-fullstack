@@ -30,7 +30,7 @@ export const RecentEvents = ({  title, description, image, seen, coming}: Recent
         <Separator/>
       </CardHeader>
       <CardContent className="!p-2.5">
-        <div className="bg-[#212833] rounded-[10px] py-3 px-4">
+        <div className="dark:bg-[#212833] rounded-[10px] py-3 px-4">
           <div className="flex items-center gap-2.5">
             <img src={image} alt="logo" className="w-10 h-10 object-cover" />
             <div className="flex flex-col gap-[2px]">

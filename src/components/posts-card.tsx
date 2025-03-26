@@ -1,14 +1,14 @@
 "use client";
 
 import {formatDistanceToNow} from 'date-fns';
-import { getPosts, createComment, deleteComment, deletePost, likePost } from "@/actions/post-action";
+import { getPosts, createComment, deleteComment, deletePost, likePost, SavePost } from "@/actions/post-action";
 import { Card, CardContent } from "./ui/card";
 import Link from "next/link";
 import Image from "next/image";
 import { SignInButton, useUser } from '@clerk/nextjs';
 import { useState } from 'react';
 import { Button } from './ui/button';
-import { Forward, HeartIcon, Loader2, LogIn, MessageCircle, SendHorizonal, Trash2 } from 'lucide-react';
+import { HeartIcon, Loader2, LogIn, MessageCircle, SendHorizonal, BookmarkIcon } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { DeleteCommentAlertDialog } from './delete-comment-alert-dialog';
 import { DeletePostAlerDialog } from './delete-post-alert-dialog';
@@ -24,13 +24,16 @@ interface PostsCardProps {
 export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
   const { user } = useUser();
   const [hasLiked, setHasLiked] = useState(post.likes.some((like) => like.userId === dbuser));
+  const [hasSaved, setHasSaved] = useState(post.savedBy.some((save) => save.userId === dbuser));
   const [isLiking, setIsLiking] = useState(false);
+  const [saves, setSaves] = useState(post._count.savedBy)
   const [postLikes, setPostLikes] = useState(post._count.likes);
   const [isDeleting, setIsDeleting] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [newComment, setNewComment] = useState("")
   const [isCommenting, setIsCommenting] = useState(false);
   const [isDeletingComment, setIsDeletingComment] = useState(false);
+  const [isSavingPost, setIsSavingPost] = useState(false);
 
   const handleLike = async () => {
     if (isLiking) return;
@@ -43,6 +46,21 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
       setHasLiked(post.likes.some((like) => like.userId === dbuser))
     } finally {
       setIsLiking(false)
+    }
+  }
+
+  const handleSavePost = async () => {
+    if (isSavingPost) return;
+    try {
+      setIsSavingPost(true);
+      setHasSaved(!hasSaved);
+      setSaves((prev) => prev + (hasSaved ? -1 : 1));
+      await SavePost(post.id);
+    } catch (error) {
+      setHasSaved(post.savedBy.some((save) => save.userId === dbuser))
+      toast.error("Failed to save post!")
+    } finally {
+      setIsSavingPost(false);
     }
   }
 
@@ -168,10 +186,20 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
               variant="ghost"
               size="sm"
               className='text-muted-foreground gap-2 hover:text-blue-400'
-              onClick={() => {}}
+              onClick={handleSavePost}
             >
-              <Forward/>
-              <span>Share</span>
+              {hasSaved ? (
+                <>
+                <BookmarkIcon className='fill-current'/>
+                <span>Saved</span>
+                </>
+              ): (
+                <>
+                <BookmarkIcon/>
+                <span>Save</span>
+                </>
+              )}
+              
             </Button>
           </div>
           {showComments && (

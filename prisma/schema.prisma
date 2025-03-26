@@ -30,6 +30,7 @@ model User {
   posts    Post[]
   comments Comment[]
   likes    Like[]
+  saved    SavedPost[]
 
   followers Follows[] @relation("following") // users who follow this user
   following Follows[] @relation("follower") // users this user follows
@@ -47,6 +48,7 @@ model Post {
   updatedAt DateTime @updatedAt
 
   // Relations
+  savedBy       SavedPost[]
   author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
   comments      Comment[]
   likes         Like[]
@@ -113,6 +115,19 @@ model Notification {
   comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
+}
+
+model SavedPost {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    String
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
 }
 
 enum NotificationType {
