@@ -48,7 +48,7 @@ export default function RootLayout({
                     <div className="hidden lg:block">
                       <Sidebar/>
                     </div>
-                    <div className="ml-auto">{children}</div>
+                    <div className="">{children}</div>
                   </div>
                 </div>
               </main>

@@ -162,3 +162,75 @@ export async function followUser(followedUser: string) {
     return { success: false, error: "Failed to follow user" };
   }
 }
+
+export async function getProfilebyUsername(username: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        username: username,
+      },
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        bio: true,
+        image: true,
+        location: true,
+        website: true,
+        createdAt: true,
+        _count: {
+          select: {
+            followers: true,
+            following: true,
+            posts: true,
+            saved: true,
+          },
+        },
+      },
+    });
+    return user;
+  } catch (error) {
+    console.error("Error fetching profle", error);
+    throw new Error("Failed to fetch profile");
+  }
+}
+
+export async function getUsersSavedPost(username: string) {
+  try {
+    const data = await prisma.savedPost.findMany({
+      where: {
+        user: {
+          username,
+        },
+      },
+      include: {
+        post: {
+          include: {
+            comments: {
+              include: {
+                author: true,
+              },
+              orderBy: {
+                createdAt: "desc",
+              },
+            },
+            likes: {
+              include: {
+                user: true,
+              },
+            },
+            savedBy: true,
+            author: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return data;
+  } catch (error) {
+    console.error("Database error", error);
+    throw new Error("Failed to fetch saved posts");
+  }
+}
