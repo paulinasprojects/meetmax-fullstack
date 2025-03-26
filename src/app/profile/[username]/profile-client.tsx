@@ -1,6 +1,6 @@
 "use client";
 
-import { getProfilebyUsername, getUsersSavedPost, updateProfile } from "@/actions/user-action";
+import { getProfilebyUsername, getUsersSavedPost, updateProfile, followUser } from "@/actions/user-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -22,12 +22,15 @@ type User = Awaited<ReturnType<typeof getProfilebyUsername>>;
 
 interface Props {
   user: NonNullable<User>;
+  isFollowing: boolean
   // savedPosts: SavedPosts;
 }
 
-export const ProfileClient = ({user}: Props) => {
+export const ProfileClient = ({user, isFollowing: initialIsFollowing}: Props) => {
   const {user: currentUser} = useUser();
   const [showEdiitingDialog, setShowEditingDialog] = useState<boolean>(false);
+  const [isFollowing, setIsFollowing] = useState(initialIsFollowing);
+  const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
   const [editForm, setEditForm] = useState({
     name: user.name || "",
     bio: user.bio || "",
@@ -47,7 +50,21 @@ export const ProfileClient = ({user}: Props) => {
       setShowEditingDialog(false);
       toast.success("Profile updated.")
     }
-  }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser) return;
+
+    try {
+      setIsUpdatingFollow(true)
+      await followUser(user.id);
+      setIsFollowing(!isFollowing)
+    } catch (error) {
+      toast.error("Failed to follow this user")
+    } finally {
+      setIsUpdatingFollow(false);
+    }
+  };
 
   const isOwnProfile = currentUser?.username === user.username ||
     currentUser?.emailAddresses[0].emailAddress.split("@")[0] === user.username;
@@ -95,8 +112,10 @@ export const ProfileClient = ({user}: Props) => {
                 Edit profile
               </Button>
           ): (
-            <Button className="w-full mt-4">
-              Follow
+            <Button className="w-full mt-4" onClick={handleFollow} disabled={isUpdatingFollow}
+              variant={isFollowing ? "outline": "default"}
+            >
+              {isFollowing ? "Unfollow" : "Follow"}
             </Button>
           )}
           {/*  */}
