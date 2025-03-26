@@ -1,17 +1,23 @@
 "use client";
 
-import { getProfilebyUsername, getUsersSavedPost } from "@/actions/user-action";
+import { getProfilebyUsername, getUsersSavedPost, updateProfile } from "@/actions/user-action";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Textarea } from "@/components/ui/textarea";
 import { SignInButton, useUser } from "@clerk/nextjs";
 import { format } from "date-fns";
 import { CalendarIcon, EditIcon, LinkIcon, MapPin } from "lucide-react";
 import Image from "next/image";
+import { useState } from "react";
+import toast from "react-hot-toast";
 
 type User = Awaited<ReturnType<typeof getProfilebyUsername>>;
 // type Posts = Awaited<ReturnType<typeof>>
-// type SavedPosts = Awaited<ReturnType<typeof getUsersSavedPost>>
+// type SavedPosts = Awaited<ReturnType<typeof getUsersSavedPost>> 
 
 
 interface Props {
@@ -21,6 +27,27 @@ interface Props {
 
 export const ProfileClient = ({user}: Props) => {
   const {user: currentUser} = useUser();
+  const [showEdiitingDialog, setShowEditingDialog] = useState<boolean>(false);
+  const [editForm, setEditForm] = useState({
+    name: user.name || "",
+    bio: user.bio || "",
+    location: user.location || "",
+    website: user.website || "",
+  });
+
+  const handleEditProfile = async () => {
+    const formData = new FormData();
+    Object.entries(editForm).forEach(([key, value]) => {
+      formData.append(key, value)
+    });
+
+    const result = await updateProfile(formData);
+
+    if (result.success) {
+      setShowEditingDialog(false);
+      toast.success("Profile updated.")
+    }
+  }
 
   const isOwnProfile = currentUser?.username === user.username ||
     currentUser?.emailAddresses[0].emailAddress.split("@")[0] === user.username;
@@ -63,7 +90,7 @@ export const ProfileClient = ({user}: Props) => {
               <Button className="w-full mt-4">Follow</Button>
             </SignInButton>
           ): isOwnProfile ? (
-              <Button className="w-full mt-4">
+              <Button className="w-full mt-4" onClick={() => setShowEditingDialog(true)}>
                 <EditIcon className="size-4 mr"/>
                 Edit profile
               </Button>
@@ -95,6 +122,59 @@ export const ProfileClient = ({user}: Props) => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={showEdiitingDialog} onOpenChange={setShowEditingDialog}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Name</Label>
+              <Input
+                name="name"
+                value={editForm.name}
+                onChange={(e) => setEditForm({...editForm, name: e.target.value })}
+                placeholder="Your name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Bio</Label>
+              <Textarea
+                name="bio"
+                value={editForm.bio}
+                onChange={(e) => setEditForm({...editForm, bio: e.target.value})}
+                placeholder="Tell us about yourself"
+                className="min-h-[100px] resize-none"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Location</Label>
+              <Input
+                name="location"
+                value={editForm.location}
+                onChange={(e) => setEditForm({...editForm, location: e.target.value })}
+                placeholder="Where are you based?"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Website</Label>
+              <Input
+                name="website"
+                value={editForm.website}
+                onChange={(e) => setEditForm({...editForm, website: e.target.value })}
+                placeholder="Your website"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={handleEditProfile}>Save Changes</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

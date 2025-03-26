@@ -37,8 +37,7 @@ export const YouMightLike = async () => {
                   <Link href={`/profile/${user.username}`} className="text-[16px] leading-[24px] font-medium cursor-pointer">
                     {user.name}
                   </Link>
-                  {/* <p>{user.bio}</p> */}
-                  <p className="text-[12px] font-medium leading-[18px]">Founder & CEO at Trophy</p>
+                  <p className="text-[12px] font-medium leading-[18px]">{user.bio}</p>
                 </div>
               </div>
             </div>
