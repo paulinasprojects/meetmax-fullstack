@@ -210,16 +210,18 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
               <div className='space-y-4'>
                 {post.comments.map((comment) => (
                   <div className="flex items-center space-x-3" key={comment.id}>
-                    <Image
-                      alt='author-image'
-                      width={32}
-                      height={32}
-                      src={comment.author.image ?? "/avatar.png"}
-                      className='rounded-full'
-                    />
+                    <Link href={`/proifle/${comment.author.username}`}>
+                      <Image
+                        alt='author-image'
+                        width={32}
+                        height={32}
+                        src={comment.author.image ?? "/avatar.png"}
+                        className='rounded-full'
+                      />
+                    </Link>
                     <div className="flex-1 min-w-0">
                       <div className='flex flex-wrap items-center gap-x-2 gap-y-1'>
-                        <span className='font-medium text-sm'>{comment.author.name}</span>
+                        <Link href={`/profile/${comment.author.username}`} className='font-medium text-sm'>{comment.author.name}</Link>
                         <span className='text-sm text-muted-foreground'>
                           @{comment.author.username}
                         </span>
