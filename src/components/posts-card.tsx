@@ -191,7 +191,10 @@ export const PostsCard = ({ post, dbuser }: PostsCardProps) => {
               {hasSaved ? (
                 <>
                 <BookmarkIcon className='fill-current'/>
-                <span>Saved</span>
+                <span>
+                  <span className='mr-2'>{saves}</span>
+                  Saved
+                </span>
                 </>
               ): (
                 <>

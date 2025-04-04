@@ -221,6 +221,13 @@ export async function getUsersSavedPost(username: string) {
             },
             savedBy: true,
             author: true,
+            _count: {
+              select: {
+                likes: true,
+                savedBy: true,
+                comments: true,
+              },
+            },
           },
         },
       },
@@ -228,6 +235,7 @@ export async function getUsersSavedPost(username: string) {
         createdAt: "desc",
       },
     });
+    revalidatePath("/profile");
     return data;
   } catch (error) {
     console.error("Database error", error);
@@ -283,5 +291,196 @@ export async function isFollowing(userId: string) {
   } catch (error) {
     console.error("Error checking follow status", error);
     return false;
+  }
+}
+
+export async function fetchProfile(username: string) {
+  try {
+    const data = await prisma.user.findUnique({
+      where: {
+        username,
+      },
+      include: {
+        posts: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        saved: {
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        followers: {
+          include: {
+            follower: {
+              include: {
+                following: true,
+                followers: true,
+              },
+            },
+          },
+        },
+        following: {
+          include: {
+            following: {
+              include: {
+                following: true,
+                followers: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return data;
+  } catch (error) {
+    console.error("Database error", error);
+    throw new Error("Failed to fetch profile");
+  }
+}
+
+export async function getUsersPosts(userId: string) {
+  try {
+    const posts = await prisma.post.findMany({
+      where: {
+        authorId: userId,
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        likes: {
+          select: {
+            userId: true,
+          },
+        },
+        savedBy: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+            savedBy: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return posts;
+  } catch (error) {
+    console.error("Database error", error);
+    throw new Error("Failed to fetch users posts.");
+  }
+}
+
+export async function getUsersLikedPosts(userId: string) {
+  try {
+    const likedPosts = await prisma.post.findMany({
+      where: {
+        likes: {
+          some: {
+            userId,
+          },
+        },
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            username: true,
+            image: true,
+          },
+        },
+        comments: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        likes: {
+          select: {
+            userId: true,
+          },
+        },
+        savedBy: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                username: true,
+                image: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: "asc",
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+            savedBy: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return likedPosts;
+  } catch (error) {
+    console.error("Databse error", error);
+    throw new Error("Failed to fetch users liked posts.");
   }
 }

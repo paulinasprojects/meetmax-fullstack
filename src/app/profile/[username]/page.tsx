@@ -1,4 +1,4 @@
-import { getProfilebyUsername, getUsersSavedPost, isFollowing } from "@/actions/user-action"
+import { getProfilebyUsername, getUsersSavedPost, getUsersPosts, isFollowing, getUsersLikedPosts } from "@/actions/user-action"
 import { notFound } from "next/navigation";
 import { ProfileClient } from "./profile-client";
 
@@ -8,16 +8,20 @@ const UsernamePage = async ({params}: {params: {username: string}}) => {
 
   if (!user) notFound();
 
-  const [getusersSaved, isCurrentUserFollowing] = await Promise.all([
+  const [getusersSaved, likedposts, getusersPosts, isCurrentUserFollowing] = await Promise.all([
     getUsersSavedPost(user.username),
-    isFollowing(user.id)
-  ])
+    getUsersLikedPosts(user.id),
+    getUsersPosts(user.id),
+    isFollowing(user.id),
+  ]);
 
   return (
    <ProfileClient
     user={user}
     isFollowing={isCurrentUserFollowing}
-    // savedPosts={getusersSaved}
+    likedPosts={likedposts}
+    savedPosts={getusersSaved}
+    posts={getusersPosts}
    />
   )
 }
